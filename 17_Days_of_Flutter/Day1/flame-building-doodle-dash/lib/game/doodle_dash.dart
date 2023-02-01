@@ -52,6 +52,22 @@ class DoodleDash extends FlameGame
       checkLevelUp();
 
       // Core gameplay: Add camera code to follow Dash during game play
+      final Rect worldBounds = Rect.fromLTRB(
+        0,
+        camera.position.y - screenBufferSpace,
+        camera.gameSize.x,
+        camera.position.y + _world.size.y,
+      );
+      camera.worldBounds = worldBounds;
+
+      if (player.isMovingDown) {
+        camera.worldBounds = worldBounds;
+      }
+
+      var isInTopHalfOfScreen = player.position.y <= (_world.size.y / 2);
+      if (!player.isMovingDown && isInTopHalfOfScreen) {
+        camera.followComponent(player);
+      }
 
       // Losing the game: Add the first loss condition.
       // Game over if Dash falls off screen!
@@ -73,7 +89,14 @@ class DoodleDash extends FlameGame
     levelManager.reset();
 
     // Core gameplay: Reset player & camera boundaries
-
+    player.reset();
+    camera.worldBounds = Rect.fromLTRB(
+      0,
+      -_world.size.y,
+      camera.gameSize.x,
+      _world.size.y + screenBufferSpace,
+    );
+    camera.followComponent(player);
     // Add a Player to the game: Reset Dash's position back to the start
     player.resetPosition();
 
@@ -88,7 +111,8 @@ class DoodleDash extends FlameGame
 
   void setCharacter() {
     // Add a Player to the game: Initialize character
-    player = Player(character: gameManager.character,
+    player = Player(
+      character: gameManager.character,
       jumpSpeed: levelManager.startingJumpSpeed,
     );
     // Add a Player to the game: Add player
@@ -123,6 +147,7 @@ class DoodleDash extends FlameGame
       objectManager.configure(levelManager.level, levelManager.difficulty);
 
       // Core gameplay: Call setJumpSpeed
+      player.setJumpSpeed(levelManager.jumpSpeed);
     }
   }
 }
